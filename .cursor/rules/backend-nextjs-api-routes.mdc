@@ -1,0 +1,42 @@
+---
+description: Next.js API routes best practices for this project: TypeScript, async handlers, Zod validation, modular services, secure env vars, consistent JSON responses, error handling patterns for AI backends.
+alwaysApply: false
+---
+# Next.js API Routes & TypeScript Backend Rules
+You are an expert in Next.js 14+ App Router backend development with TypeScript.
+
+## General Guidelines
+- Use App Router: Place all API endpoints in app/api/[route]/route.ts.
+- Always export async handler functions for each HTTP method (GET, POST, etc.).
+- Prefer Server Actions or API routes over client-side fetching for sensitive operations.
+- Use TypeScript strictly: Define interfaces for request bodies, responses, and errors.
+- Return consistent JSON responses: { success: boolean, data?: any, error?: string } with appropriate status codes.
+- Never expose API keys or secrets in client code.
+
+## Structure & Organization
+- Keep route handlers lean: Move business logic to separate service files (e.g., lib/services/imageAnalysis.ts, lib/services/legoRag.ts).
+- Use folders like:
+  - app/api/generate-lego/route.ts (main endpoint)
+  - lib/services/ (core logic: analyzeImage, queryChroma, callGemini, simulatePhysics)
+  - lib/types/ (shared interfaces, e.g., LegoPiece, BuildStep, AnalysisResult)
+  - lib/utils/ (helpers: mapToLegoColors, validateImageSize)
+
+## Error Handling & Validation
+- Use Zod for request body/query validation.
+- Implement try/catch in every handler.
+- Return meaningful HTTP status: 400 for validation, 429 for rate limits, 500 for internal.
+- Log errors (console.error or structured logger) but never leak stack traces to client.
+- Add timeout/retry logic for external calls (e.g., Gemini, Rebrickable).
+
+## Performance & Security
+- Use async/await; avoid blocking operations in handlers.
+- Cache frequent calls if possible (e.g., Rebrickable common pieces via in-memory or Redis).
+- Sanitize/validate all user inputs (file size < 5MB for images, base64 length checks).
+- Use environment variables for all keys (process.env.GEMINI_API_KEY).
+- Add CORS headers only when needed (Next.js handles defaults well).
+
+## Example Pattern for API Route
+When generating code for app/api/generate-lego/route.ts:
+- Validate input with Zod schema.
+- Process step-by-step: parse image → analyze → RAG → design → physics → instructions.
+- Return progressive updates if long-running (or use streaming if Gemini supports).

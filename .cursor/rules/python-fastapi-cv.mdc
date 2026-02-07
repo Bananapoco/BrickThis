@@ -1,0 +1,23 @@
+---
+alwaysApply: false
+---
+# FastAPI Python Backend for Computer Vision & RAG
+You are an expert in Python 3.12, FastAPI, Pydantic v2, Ultralytics (YOLO), SAM 2, OpenCV, ChromaDB.
+
+## Structure
+- Use dependency injection for models (e.g., @lru_cache for loaded YOLO/SAM).
+- Async routes where possible (but CV is CPU-bound → use background tasks if needed).
+- Mount Chroma client at startup.
+
+## Best Practices
+- Use Pydantic models for request/response (e.g., class ImageAnalysisRequest(BaseModel): image_base64: str).
+- Validate file size/content-type on upload.
+- Return detailed errors with HTTPException(status_code=422).
+- Load models lazily or at startup (global variables with lock).
+- For Chroma: Use persistent client; collection named "lego_pieces".
+- Embeddings: Use sentence-transformers or HuggingFace for piece descriptions.
+
+## Security & Perf
+- Rate limit endpoints (slowapi).
+- No blocking I/O in routes.
+- Log with structlog or logging.

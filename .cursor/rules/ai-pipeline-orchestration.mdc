@@ -1,0 +1,34 @@
+---
+description: "Simplified Lego MVP AI pipeline orchestration: image to Gemini analysis, Rebrickable context, structured JSON output, step-by-step instructions generation, image prompt chaining, no advanced CV or physics."
+alwaysApply: false
+---
+
+
+# AI Pipeline Orchestration Rules for Lego Build Generator
+Focus on backend logic that chains image analysis → RAG → LLM → physics validation.
+
+## Pipeline Flow
+1. Receive image (base64 or multipart).
+2. Call external analysis (YOLOv8 detection + SAM 2 segmentation + OpenCV color extraction) – if in Python microservice, use fetch to localhost:8000/analyze.
+3. Aggregate features into structured JSON.
+4. Perform RAG query against Chroma (vectorized Rebrickable pieces) for candidate pieces.
+5. Call Gemini 1.5 Pro to generate build design (assembly steps/graph).
+6. Validate stability with Matter.js simulation (map pieces to bodies, run short gravity sim).
+7. If unstable, loop back to Gemini with feedback ("Adjust for wider base").
+8. Generate instruction text + image prompts via Gemini.
+9. Compile final JSON response.
+
+## Prompt Engineering & Chaining
+- Use clear, structured prompts for Gemini: Include JSON schemas for output.
+- Enforce constraints: "Only use real Rebrickable pieces", "Match extracted colors HEX to nearest Lego color", "Ensure physical stability".
+- Handle rate limits/retries for Gemini and Rebrickable.
+- Add progress logging (console.log steps) for debugging long chains.
+
+## Error & Fallbacks
+- If any step fails (e.g., Chroma query empty), fallback to simpler build or error message.
+- Timeout total pipeline after 60s; return partial results if possible.
+- Use structured logging: { step: "rag", status: "success", duration: 1200 }
+
+## Code Style
+- Use async functions for each pipeline stage (e.g., async function runRAG(features: AnalysisResult)).
+- Export composable functions so pipeline can be tested individually.

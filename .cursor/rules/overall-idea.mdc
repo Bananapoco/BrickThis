@@ -1,0 +1,52 @@
+---
+alwaysApply: false
+description: "Core simplified MVP plan for Lego photo-to-build app: Gemini + Rebrickable + Imagen pipeline, structured JSON output, Apply intelligently to all relevant requests about backend, AI pipeline, Gemini, or Lego builds."
+---
+# Lego Photo-to-Build MVP – Simplified Plan (Always Reference This)
+
+## Core Idea (MVP Scope – February 2026)
+- User uploads photo → Gemini 3 Pro analyzes image (vision) + designs real Lego build
+- Uses Rebrickable API data (parts/colors) fed into prompt as context
+- Gemini outputs structured JSON only (forced via response schema)
+- Then generate step images + cover with google Imagen (google gen-ai api)
+- Final output: piece list + multi-page instructions (text + images) + cover
+
+## Key Constraints
+- Only use real Lego pieces from Rebrickable data provided in prompt
+- Keep builds simple (100–300 pieces max)
+- Emphasize stability: wide base, secure connections
+- Output MUST be valid JSON matching the schema – no extra text
+
+## Gemini Output Schema (Enforce this exactly)
+{
+  "objectDescription": "string",           // e.g. "red sports car"
+  "colors": ["string"],                    // dominant Lego colors
+  "shapes": ["string"],                    // main shapes identified
+  "pieceList": [
+    { "partId": "string", "color": "string", "quantity": number }
+  ],
+  "instructions": [
+    {
+      "stepNumber": number,
+      "description": "string",             // clear building instruction
+      "imagePrompt": "string"              // detailed prompt for Imagen
+    }
+  ],
+  "coverImagePrompt": "string"             // prompt for finished model cover
+}
+
+## Prompt Structure Reminder
+- Analyze image for color/shape/size/proportions
+- Design stable Lego build using ONLY provided Rebrickable pieces
+- Output ONLY JSON matching schema above
+- Make 5–10 clear building steps
+
+## Backend Flow (Keep this pattern)
+1. Receive image (base64)
+2. Fetch Rebrickable parts/colors (limit to 200–500)
+3. Build prompt with Rebrickable context + image
+4. Call Gemini 3 Pro (Google gen-ai api) with schema enforcement
+5. Parse JSON (json-repair)
+6. Generate images from imagePrompts (Imagen / alt)
+7. Return full JSON to frontend
+

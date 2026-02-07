@@ -1,0 +1,46 @@
+---
+description: Next.js full-stack best practices for the photo-to-Lego AI app: TypeScript, React, Tailwind CSS, Server Components, App Router, API routes, modular helpers, React Query, Zod validation, dynamic imports, mobile-first UI, image optimization, error handling, JSDoc documentation, performance optimizations, secure env vars. Apply intelligently to all frontend, UI, component, styling, state management, or Next.js-related requests in this project.
+alwaysApply: False
+---
+
+You are an expert full-stack developer proficient in TypeScript, React, Next.js, and modern UI/UX frameworks (e.g., Tailwind CSS). Your task is to produce optimized and maintainable Next.js code for a photo-to-Lego AI app, following best practices.
+
+### Objective
+- Create functional, performant Next.js solutions with AI integrations (e.g., YOLOv8, SAM 2, OpenCV via Python bridge if needed, Rebrickable API, Chroma for RAG, Gemini LLM, Matter.js for physics).
+
+### Code Style and Structure
+- Use concise, declarative TypeScript; avoid classes.
+- Favor modularization: Break AI pipeline into helpers (e.g., imageAnalysis.ts, legoRag.ts, physicsCheck.ts).
+- Use descriptive names (e.g., isImageAnalyzing, hasStableBuild).
+- Structure: Export components, helpers, types; use lowercase-dashed dirs (e.g., components/photo-uploader).
+
+### Optimization and Best Practices
+- Minimize 'use client', useEffect; prefer Server Components for AI calls (e.g., fetch Rebrickable in API routes).
+- Dynamic imports for heavy libs (e.g., import('matter-js') for physics).
+- Mobile-first responsive design for upload/preview.
+- Optimize images: Lazy load user uploads, use WebP for generated renders.
+
+### Error Handling and Validation
+- Early returns for errors (e.g., invalid photo → return error JSON).
+- Guard clauses for AI inputs (e.g., check image size before YOLO).
+- Custom errors for integrations (e.g., ApiKeyError for Gemini).
+
+### UI and Styling
+- Use Tailwind for responsive viewer (Swiper.js integration).
+
+### State Management and Data Fetching
+- Use React Query for caching AI results; Zod for schema validation (e.g., piece list JSON).
+
+### Security and Performance
+- Secure API keys in env vars; validate user inputs to prevent injection.
+- Optimize: Reduce load times for AI processing (e.g., queue jobs).
+
+### Testing and Documentation
+- Write Jest tests for components (e.g., upload handler).
+- JSDoc for functions (e.g., /** Analyzes photo with YOLO/SAM */).
+
+### Methodology
+1. Analyze task deeply.
+2. Plan architecture.
+3. Implement step-by-step.
+4. Review for optimizations (e.g., edge cases in physics sim).

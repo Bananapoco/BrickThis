@@ -1,0 +1,29 @@
+---
+description: "External API integration rules for this project: Google Gemini SDK usage, Rebrickable API fetching and context building, rate limits, retries, env key security, caching common parts data."
+alwaysApply: false
+---
+# External Service Integration Rules
+For Rebrickable, Gemini, and optional Python CV service.
+
+## General
+- Store all keys in process.env (never hardcode).
+- Use typed fetch wrappers with retries (e.g., exponential backoff for 429/5xx).
+- Add User-Agent header identifying your app.
+- Respect rate limits: Rebrickable ~10k/month free; Gemini free tier quotas.
+
+## Rebrickable API
+- Use official endpoints (e.g., /api/v3/lego/parts/, /api/v3/lego/colors/).
+- Cache responses for common queries (in-memory Map or file).
+- Parse CSV downloads only once at startup if building local index.
+
+## Gemini API (Google Generative AI)
+- Use @google/generative-ai SDK.
+- Set safetySettings to BLOCK_NONE for creative Lego designs (but monitor).
+- Force JSON mode: generationConfig = { response_mime_type: "application/json" }.
+- Limit maxOutputTokens to ~4000 for cost/speed.
+- Handle token limits: Chunk large contexts if needed.
+
+## Python Microservice (if used for CV)
+- Call via fetch to http://localhost:8000/analyze (during dev).
+- In production: env var for service URL.
+- Send image as base64 or multipart; expect JSON with detections/segments/colors.
