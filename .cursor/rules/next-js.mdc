@@ -22,7 +22,7 @@ You are an expert full-stack developer proficient in TypeScript, React, Next.js,
 
 ### Error Handling and Validation
 - Early returns for errors (e.g., invalid photo → return error JSON).
-- Guard clauses for AI inputs (e.g., check image size before YOLO).
+- Guard clauses for AI inputs 
 - Custom errors for integrations (e.g., ApiKeyError for Gemini).
 
 ### UI and Styling
