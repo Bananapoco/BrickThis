@@ -6,7 +6,8 @@ description: "Core simplified MVP plan for Lego photo-to-build app: Gemini + Reb
 
 ## Core Idea (MVP Scope – February 2026)
 - User uploads photo → Gemini 3 Pro analyzes image (vision) + designs real Lego build
-- Uses Rebrickable API data (parts/colors) fed into prompt as context
+- Uses parts json data fed into prompt in context
+- Context includes instructions for what to do as well
 - Gemini outputs structured JSON only (forced via response schema)
 - Then generate step images + cover with google Imagen (google gen-ai api)
 - Final output: piece list + multi-page instructions (text + images) + cover
