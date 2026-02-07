@@ -1,0 +1,7 @@
+{
+  "name": "BrickThis",
+  "description": "",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
