@@ -10,7 +10,7 @@ const fredoka = Fredoka({
 });
 
 export const metadata: Metadata = {
-  title: "BRICKIFY",
+  title: "BRICKTHIS",
   description: "Turn your ideas into bricks",
 };
 

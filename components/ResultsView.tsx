@@ -40,43 +40,27 @@ const PartsCallout: React.FC<{ step: InstructionStep }> = ({ step }) => {
 const StepCard: React.FC<{ step: InstructionStep; index: number }> = ({ step, index }) => {
   return (
     <motion.div
-      className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100"
+      className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 flex flex-col"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.4 }}
     >
       {/* Step number banner */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="bg-[#E3000B] text-white w-8 h-8 rounded-full flex items-center justify-center font-black text-sm shadow-sm">
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#E3000B] text-white w-10 h-10 rounded-full flex items-center justify-center font-black text-lg shadow-sm">
             {step.stepNumber}
           </div>
-          <span className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+          <span className="text-base font-bold text-gray-700 uppercase tracking-wide">
             Step {step.stepNumber}
           </span>
         </div>
       </div>
 
-      {/* Step image */}
-      <div className="aspect-square bg-[#C3E1F0] flex items-center justify-center p-2">
-        {step.imageUrl ? (
-          <img
-            src={step.imageUrl}
-            alt={`Step ${step.stepNumber}`}
-            className="w-full h-full object-contain rounded-lg"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center text-gray-400 gap-2">
-            <Package size={32} />
-            <span className="text-xs font-medium">Generating...</span>
-          </div>
-        )}
-      </div>
-
       {/* Parts callout + description */}
-      <div className="p-3 space-y-2">
+      <div className="p-5 space-y-4 flex-grow">
         <PartsCallout step={step} />
-        <p className="text-sm text-gray-700 font-medium leading-snug">
+        <p className="text-lg text-gray-800 font-medium leading-relaxed">
           {step.description}
         </p>
       </div>
@@ -93,7 +77,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
     // Header
     doc.setFontSize(22);
     doc.setTextColor(227, 0, 11);
-    doc.text('Brickify Instructions', 20, 20);
+    doc.text('BrickThis Instructions', 20, 20);
 
     doc.setFontSize(12);
     doc.setTextColor(0);
@@ -167,7 +151,7 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
             {/* Branding overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
               <h2 className="text-white text-2xl md:text-3xl font-black drop-shadow-lg">
-                BRICKIFY
+                BRICKTHIS
               </h2>
               <p className="text-white/80 text-sm font-medium mt-1">
                 {results.pieces.reduce((acc, p) => acc + p.quantity, 0)} pieces
@@ -240,8 +224,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
               <table className="w-full">
                 <thead className="bg-gray-50 text-gray-500 uppercase text-sm font-bold">
                   <tr>
-                    <th className="px-6 py-4 text-left">Color</th>
-                    <th className="px-6 py-4 text-left">Part Name</th>
+                    <th className="px-6 py-4 text-left">Part</th>
+                    <th className="px-6 py-4 text-center">Color</th>
+                    <th className="px-6 py-4 text-left">Name</th>
                     <th className="px-6 py-4 text-center">ID</th>
                     <th className="px-6 py-4 text-right">Qty</th>
                   </tr>
@@ -250,29 +235,27 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
                   {results.pieces.map((piece) => (
                     <tr key={piece.id} className="hover:bg-[#FFF9C4] transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          {piece.imageUrl ? (
-                            <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm shrink-0 bg-white">
-                              <img 
-                                src={piece.imageUrl} 
-                                alt={piece.name}
-                                className="w-full h-full object-contain" 
-                                style={{
-                                  filter: 'grayscale(100%) brightness(1.1) contrast(1.1)',
-                                }}
-                              />
-                              <div 
-                                className="absolute inset-0 mix-blend-multiply" 
-                                style={{ backgroundColor: piece.colorHex }} 
-                              />
-                            </div>
-                          ) : (
-                            <div
-                              className="w-12 h-12 rounded-lg border border-gray-300 shadow-sm shrink-0"
-                              style={{ backgroundColor: piece.colorHex }}
+                        {piece.imageUrl ? (
+                          <div className="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 shadow-sm shrink-0 bg-white">
+                            <img 
+                              src={piece.imageUrl} 
+                              alt={piece.name}
+                              className="w-full h-full object-contain" 
                             />
-                          )}
-                          <span className="font-medium text-gray-700">{piece.color}</span>
+                          </div>
+                        ) : (
+                          <div className="w-12 h-12 rounded-lg border border-gray-300 shadow-sm shrink-0 bg-gray-100 flex items-center justify-center text-gray-400">
+                            <Package size={20} />
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex justify-center">
+                          <div
+                            className="w-10 h-10 rounded-md border-2 border-gray-200 shadow-sm shrink-0"
+                            style={{ backgroundColor: piece.colorHex }}
+                            title={piece.color}
+                          />
                         </div>
                       </td>
                       <td className="px-6 py-4 font-bold text-gray-800">{piece.name}</td>
@@ -296,9 +279,9 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.2 }}
           >
-            {/* LEGO Manual-Style Instruction Grid */}
-            <div className="bg-[#C3E1F0] rounded-3xl shadow-xl p-4 md:p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* LEGO Manual-Style Instruction List (No Images) */}
+            <div className="bg-gray-50 rounded-3xl shadow-xl p-4 md:p-8">
+              <div className="max-w-3xl mx-auto space-y-4">
                 {results.instructions.map((step, index) => (
                   <StepCard key={step.stepNumber} step={step} index={index} />
                 ))}

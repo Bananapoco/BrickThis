@@ -105,7 +105,7 @@ export default function Home() {
                animate={{ opacity: 1, x: 0 }}
                transition={{ delay: 0.2 }}
              >
-               BRICKIFY
+               BRICKTHIS
              </motion.h1>
           </motion.div>
           <AnimatePresence>
@@ -240,7 +240,7 @@ export default function Home() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <p>© 2024 Brickify Prototype. Not affiliated with the LEGO Group.</p>
+        <p>© 2024 BrickThis Prototype. Not affiliated with the LEGO Group.</p>
       </motion.footer>
     </div>
   );
