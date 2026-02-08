@@ -78,7 +78,7 @@ export const FauxErrorScreen: React.FC<FauxErrorScreenProps> = ({ onRetry }) => 
           className="w-full h-96 object-cover rounded-xl mb-8"
         />
         
-        <p className="text-2xl font-bold text-gray-700 mb-10">
+        <p className="text-2xl font-bold text-red-700 mb-10">
           TOO MUCH AWESOMENESS DETECTED
         </p>
 
