@@ -6,7 +6,7 @@ import { jsonrepair } from "jsonrepair";
 import { getLegoColorHex } from "../../../services/legoColors";
 import { getPartImageUrl } from "../../../services/rebrickable";
 
-export const maxDuration = 60; // Allow up to 60s for Gemini + cover image generation (step images disabled)
+export const maxDuration = 120; // Allow up to 120s for Gemini + high-quality cover image generation
 
 export async function POST(req: NextRequest) {
   try {

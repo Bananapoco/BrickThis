@@ -22,16 +22,24 @@ export async function generateImageWithReplicate(
   console.log(`Aspect ratio: ${aspectRatio}`);
   console.log(`Prompt (first 200 chars): ${prompt.substring(0, 200)}...`);
 
+  // Explicit dimensions for high resolution
+  const dimensions = aspectRatio === "4:3" 
+    ? { width: 1024, height: 768 } 
+    : { width: 1024, height: 1024 };
+
   try {
     const output = await replicate.run(
-      "black-forest-labs/flux-schnell",
+      "black-forest-labs/flux-dev",
       {
         input: {
           prompt: prompt,
           num_outputs: 1,
-          aspect_ratio: aspectRatio,
-          output_format: "webp",
-          output_quality: 80,
+          ...dimensions,
+          output_format: "png",
+          output_quality: 100,
+          num_inference_steps: 35,
+          guidance_scale: 4.5,
+          seed: Math.floor(Math.random() * 1000000),
         }
       }
     );

@@ -143,11 +143,11 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="relative">
+          <div className="relative flex justify-center bg-gray-50">
             <img
               src={results.coverImageUrl}
               alt="Your LEGO Build"
-              className="w-full h-auto object-contain max-h-[420px] bg-gray-50"
+              className="w-auto h-auto object-contain max-h-[420px] max-w-full"
             />
             {/* Branding overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">

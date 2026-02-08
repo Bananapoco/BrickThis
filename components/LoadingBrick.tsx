@@ -24,7 +24,7 @@ export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: 
     // Cycle memes every 3 seconds
     const memeInterval = setInterval(() => {
       setMemeIndex((prev) => (prev + 1) % MEMES.length);
-    }, 3000);
+    }, 5000);
 
     // Simulate progress bar (since we don't have real progress from the API)
     // It will slow down as it reaches 90%
