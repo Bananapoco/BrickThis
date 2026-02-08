@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { AppState, AnalysisResult } from '../types';
@@ -10,18 +10,26 @@ import { PhotoInput } from '../components/PhotoInput';
 import { ImageCropper } from '../components/ImageCropper';
 import { LoadingBrick } from '../components/LoadingBrick';
 import { ResultsView } from '../components/ResultsView';
+import { FauxErrorScreen } from '../components/FauxErrorScreen';
+
+const ENABLE_FAUX_ERROR = true;
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>('home');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult | null>(null);
+  
+  // Faux Error State
+  const [showFauxError, setShowFauxError] = useState(false);
+  const [isFauxErrorFlow, setIsFauxErrorFlow] = useState(false);
+  const currentBlob = useRef<Blob | null>(null);
 
   const handleImageSelected = (imageUrl: string) => {
     setSelectedImage(imageUrl);
     setAppState('editing');
   };
 
-  const handleImageCropped = async (blob: Blob) => {
+  const startRealAnalysis = async (blob: Blob) => {
     setAppState('processing');
     try {
       const result = await analyzeImage(blob);
@@ -33,14 +41,73 @@ export default function Home() {
     }
   };
 
+  const handleImageCropped = async (blob: Blob) => {
+    // Prevent double submission
+    if (appState === 'processing') return;
+
+    currentBlob.current = blob;
+    
+    // Check if we should trigger the faux error
+    const hasSeenFauxError = localStorage.getItem('hasSeenFauxError');
+    
+    if (ENABLE_FAUX_ERROR && !hasSeenFauxError) {
+      // Start fake processing flow - NO API CALLS HERE
+      setAppState('processing');
+      setIsFauxErrorFlow(true);
+    } else {
+      // Normal flow - Start API call immediately
+      startRealAnalysis(blob);
+    }
+  };
+
+  const handleLoadingProgress = (progress: number) => {
+    // Trigger faux error at ~60% if we are in the fake flow and haven't shown it yet
+    if (isFauxErrorFlow && progress >= 60 && !showFauxError) {
+      setShowFauxError(true);
+    }
+  };
+
+  const handleFauxErrorRetry = () => {
+    // Mark as seen so it doesn't happen again
+    localStorage.setItem('hasSeenFauxError', 'true');
+    
+    // Reset states
+    setShowFauxError(false);
+    setIsFauxErrorFlow(false);
+    
+    // Start real analysis
+    if (currentBlob.current) {
+      startRealAnalysis(currentBlob.current);
+    } else {
+      setAppState('home');
+    }
+  };
+
   const handleReset = () => {
     setSelectedImage(null);
     setAnalysisResults(null);
     setAppState('home');
+    setShowFauxError(false);
+    setIsFauxErrorFlow(false);
   };
 
   return (
     <div className="min-h-screen flex flex-col font-sans relative overflow-hidden">
+      
+      {/* Faux Error Overlay */}
+      <AnimatePresence>
+        {showFauxError && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100]"
+          >
+            <FauxErrorScreen onRetry={handleFauxErrorRetry} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background Characters */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute left-[-8%] top-1/2 -translate-y-1/2">
@@ -214,7 +281,10 @@ export default function Home() {
               transition={{ duration: 0.3 }}
               className="min-h-[70vh] flex items-center justify-center"
             >
-              <LoadingBrick message="Building your instructions..." />
+              <LoadingBrick 
+                message="Building your instructions..." 
+                onProgress={handleLoadingProgress}
+              />
             </motion.div>
           )}
 
@@ -240,7 +310,7 @@ export default function Home() {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        <p>© 2024 BrickThis Prototype. Not affiliated with the LEGO Group.</p>
+        <p>© 2026 February 7th BrickThis Prototype. Not affiliated with the LEGO Group.</p>
       </motion.footer>
     </div>
   );

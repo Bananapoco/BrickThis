@@ -43,10 +43,14 @@ export async function getPartImageUrl(partNum: string, colorName: string): Promi
 
     if (!partRes.ok) {
         // Fallback: Try just the part image if color-specific fails
+        // console.log(`Color-specific image failed for ${partNum}/${colorId}, trying generic...`);
         const partGeneralRes = await fetch(`https://rebrickable.com/api/v3/lego/parts/${partNum}/`, {
             headers: { 'Authorization': `key ${REBRICKABLE_API_KEY}` }
         });
-        if (!partGeneralRes.ok) return null;
+        if (!partGeneralRes.ok) {
+            // console.log(`Generic image failed for ${partNum}`);
+            return null;
+        }
         const partGeneralData = await partGeneralRes.json();
         return partGeneralData.part_img_url || null;
     }

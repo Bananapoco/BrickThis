@@ -16,15 +16,15 @@ const MEMES = [
   'lego-lego-meme.png'
 ];
 
-export const LoadingBrick: React.FC<{ message?: string }> = ({ message = "Processing..." }) => {
+export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: number) => void }> = ({ message = "Processing...", onProgress }) => {
   const [memeIndex, setMemeIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Cycle memes every 5 seconds
+    // Cycle memes every 3 seconds
     const memeInterval = setInterval(() => {
       setMemeIndex((prev) => (prev + 1) % MEMES.length);
-    }, 5000);
+    }, 3000);
 
     // Simulate progress bar (since we don't have real progress from the API)
     // It will slow down as it reaches 90%
@@ -41,6 +41,14 @@ export const LoadingBrick: React.FC<{ message?: string }> = ({ message = "Proces
       clearInterval(progressInterval);
     };
   }, []);
+
+  // Use a separate effect to notify parent of progress updates
+  // This avoids "Cannot update a component while rendering a different component" error
+  useEffect(() => {
+    if (onProgress) {
+      onProgress(progress);
+    }
+  }, [progress, onProgress]);
 
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-xl mx-auto space-y-8 p-6">
