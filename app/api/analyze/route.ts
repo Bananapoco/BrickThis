@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { analyzeImageWithGemini } from "../../../services/gemini";
 import legoParts from "../../../data/lego-parts.json";
 import { jsonrepair } from "jsonrepair";
+import { getLegoColorHex } from "../../../services/legoColors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +50,15 @@ export async function POST(req: NextRequest) {
     let parsedResult: any;
     try {
       parsedResult = JSON.parse(repairedJson);
+      
+      // Add hex color values to pieceList if not already present
+      if (parsedResult.pieceList && Array.isArray(parsedResult.pieceList)) {
+        parsedResult.pieceList = parsedResult.pieceList.map((piece: any) => ({
+          ...piece,
+          colorHex: piece.colorHex || getLegoColorHex(piece.color),
+        }));
+      }
+      
       console.log("\n=== Gemini Response JSON ===");
       console.log(JSON.stringify(parsedResult, null, 2));
       console.log("===========================\n");

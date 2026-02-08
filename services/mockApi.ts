@@ -37,7 +37,7 @@ export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => 
         id: String(index + 1),
         name: `Part ${p.partId}`,
         color: p.color,
-        colorHex: '#CCCCCC', // Placeholder as Gemini doesn't return HEX yet
+        colorHex: p.colorHex || '#CCCCCC', // Use hex from API response
         quantity: p.quantity,
         partNumber: p.partId,
       })),
