@@ -1,9 +1,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-interface LegoButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface LegoButtonProps {
+  children?: React.ReactNode;
   variant?: 'primary' | 'secondary' | 'danger' | 'neutral';
   icon?: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  disabled?: boolean;
 }
 
 export const LegoButton: React.FC<LegoButtonProps> = ({ 
@@ -11,7 +15,8 @@ export const LegoButton: React.FC<LegoButtonProps> = ({
   variant = 'primary', 
   className = '', 
   icon,
-  ...props 
+  onClick,
+  disabled,
 }) => {
   const baseStyles = "relative font-bold text-lg px-6 py-3 rounded-xl flex items-center justify-center gap-2 shadow-md border-b-4";
   
@@ -38,7 +43,8 @@ export const LegoButton: React.FC<LegoButtonProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      {...props}
+      onClick={onClick}
+      disabled={disabled}
     >
       {icon && (
         <motion.span 

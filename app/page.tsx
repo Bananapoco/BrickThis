@@ -208,13 +208,13 @@ export default function Home() {
           {appState === 'processing' && (
             <motion.div
               key="processing"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="h-[60vh] flex items-center justify-center"
+              className="min-h-[70vh] flex items-center justify-center"
             >
-              <LoadingBrick message="Identifying bricks..." />
+              <LoadingBrick message="Building your instructions..." />
             </motion.div>
           )}
 

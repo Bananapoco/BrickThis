@@ -1,4 +1,5 @@
 import { AnalysisResult } from '../types';
+import { getLegoColorHex } from './legoColors';
 
 export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => {
   try {
@@ -9,7 +10,7 @@ export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => 
       reader.onerror = reject;
       reader.readAsDataURL(imageBlob);
     });
-    
+
     const base64Image = await base64Promise;
 
     // Call our real API
@@ -35,19 +36,26 @@ export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => 
       difficulty: data.pieceList.length > 50 ? 'Hard' : data.pieceList.length > 20 ? 'Medium' : 'Easy',
       pieces: data.pieceList.map((p: any, index: number) => ({
         id: String(index + 1),
-        name: `Part ${p.partId}`,
+        name: p.name || `Part ${p.partId}`,
         color: p.color,
-        colorHex: p.colorHex || '#CCCCCC', // Use hex from API response
+        colorHex: p.colorHex || getLegoColorHex(p.color),
         quantity: p.quantity,
         partNumber: p.partId,
+        imageUrl: p.imageUrl,
       })),
       instructions: data.instructions.map((s: any) => ({
         stepNumber: s.stepNumber,
         description: s.description,
-        piecesNeeded: [], // Gemini doesn't explicitly list pieces per step in the current schema
+        imageUrl: s.imageUrl || undefined,
+        partsUsed: (s.partsUsed || []).map((p: any) => ({
+          partId: p.partId,
+          name: p.name || `Part ${p.partId}`,
+          color: p.color,
+          colorHex: p.colorHex || getLegoColorHex(p.color),
+          quantity: p.quantity,
+        })),
       })),
-      coverImageUrl: data.coverImageUrl, // Pass through the cover image
-      instructionsImageUrl: data.instructionsImageUrl, // Pass through the instructions summary image
+      coverImageUrl: data.coverImageUrl,
     };
   } catch (error) {
     console.error("Error in analyzeImage:", error);

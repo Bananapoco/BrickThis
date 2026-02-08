@@ -9,37 +9,64 @@ const replicate = new Replicate({
 });
 
 /**
- * Generates an image using Replicate's prunaai/flux.1-dev model
+ * Generates an image using Replicate's FLUX Schnell model
  * @param prompt The prompt for image generation
+ * @param aspectRatio The aspect ratio for the image (default "1:1")
  * @returns The URL of the generated image
  */
-export async function generateImageWithReplicate(prompt: string): Promise<string> {
+export async function generateImageWithReplicate(
+  prompt: string,
+  aspectRatio: string = "1:1"
+): Promise<string> {
   console.log(`\n=== Replicate Image Generation Started ===`);
-  console.log(`Prompt: ${prompt}`);
+  console.log(`Aspect ratio: ${aspectRatio}`);
+  console.log(`Prompt (first 200 chars): ${prompt.substring(0, 200)}...`);
 
   try {
     const output = await replicate.run(
-      "prunaai/flux.1-dev",
+      "black-forest-labs/flux-schnell",
       {
         input: {
           prompt: prompt,
-          aspect_ratio: "1:1",
+          num_outputs: 1,
+          aspect_ratio: aspectRatio,
           output_format: "webp",
           output_quality: 80,
-          safety_tolerance: 2
         }
       }
     );
 
-    // Replicate returns an array of URLs or a single URL depending on the model
-    const imageUrl = Array.isArray(output) ? output[0] : output;
-    
+    console.log("Raw Replicate output type:", typeof output);
+    console.log("Raw Replicate output:", JSON.stringify(output).substring(0, 500));
+
+    // flux-schnell returns an array of FileOutput objects (ReadableStream with .url())
+    // or an array of URL strings depending on the SDK version
+    let imageUrl: string;
+
+    if (Array.isArray(output) && output.length > 0) {
+      const first = output[0];
+      if (typeof first === "string") {
+        imageUrl = first;
+      } else if (first && typeof first === "object" && "url" in first) {
+        // FileOutput object - call .url() or use toString()
+        imageUrl = typeof first.url === "function" ? first.url() : String(first.url);
+      } else {
+        // Fallback: convert to string
+        imageUrl = String(first);
+      }
+    } else if (typeof output === "string") {
+      imageUrl = output;
+    } else {
+      throw new Error(`Unexpected Replicate output format: ${JSON.stringify(output).substring(0, 200)}`);
+    }
+
     console.log("✅ Replicate generation: SUCCESS");
     console.log(`Image URL: ${imageUrl}`);
-    return imageUrl as string;
+    return imageUrl;
   } catch (error: any) {
     console.error("❌ Replicate generation: FAILED");
     console.error("Replicate error:", error.message);
+    console.error("Full error:", JSON.stringify(error, null, 2).substring(0, 500));
     throw error;
   }
 }

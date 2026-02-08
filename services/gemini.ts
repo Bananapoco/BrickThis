@@ -30,11 +30,12 @@ const responseSchema: Schema = {
         type: SchemaType.OBJECT,
         properties: {
           partId: { type: SchemaType.STRING },
+          name: { type: SchemaType.STRING },
           color: { type: SchemaType.STRING },
           colorHex: { type: SchemaType.STRING },
           quantity: { type: SchemaType.NUMBER },
         },
-        required: ["partId", "color", "colorHex", "quantity"],
+        required: ["partId", "name", "color", "colorHex", "quantity"],
       },
     },
     instructions: {
@@ -44,17 +45,34 @@ const responseSchema: Schema = {
         properties: {
           stepNumber: { type: SchemaType.NUMBER },
           description: { type: SchemaType.STRING },
+          imagePrompt: {
+            type: SchemaType.STRING,
+            description:
+              "A prompt for FLUX image generation describing the cumulative build state at this step. Isometric view, light blue background, realistic LEGO bricks. No text, no arrows, no UI elements.",
+          },
+          partsUsed: {
+            type: SchemaType.ARRAY,
+            description: "The parts added in THIS step only",
+            items: {
+              type: SchemaType.OBJECT,
+              properties: {
+                partId: { type: SchemaType.STRING },
+                name: { type: SchemaType.STRING },
+                color: { type: SchemaType.STRING },
+                colorHex: { type: SchemaType.STRING },
+                quantity: { type: SchemaType.NUMBER },
+              },
+              required: ["partId", "name", "color", "quantity"],
+            },
+          },
         },
-        required: ["stepNumber", "description"],
+        required: ["stepNumber", "description", "imagePrompt", "partsUsed"],
       },
     },
     coverImagePrompt: {
       type: SchemaType.STRING,
-      description: "Detailed prompt for Imagen to generate a cover image of the finished model",
-    },
-    instructionsImagePrompt: {
-      type: SchemaType.STRING,
-      description: "Prompt for a single image showing an exploded view or summary of the building steps",
+      description:
+        "A prompt for FLUX image generation showing the completed LEGO model. Product photography, isometric 3/4 view, white background, realistic bricks with visible studs. No text.",
     },
   },
   required: [
@@ -64,11 +82,10 @@ const responseSchema: Schema = {
     "pieceList",
     "instructions",
     "coverImagePrompt",
-    "instructionsImagePrompt",
   ],
 };
 
-// Gemini 3 Pro Preview model with JSON schema enforcement
+// Gemini model with JSON schema enforcement
 export const geminiModel = genAI.getGenerativeModel({
   model: "gemini-3-pro-preview",
   generationConfig: {
@@ -79,51 +96,37 @@ export const geminiModel = genAI.getGenerativeModel({
 
 export async function analyzeImageWithGemini(imageBase64: string, partsList: string) {
   const prompt = `
-You are an expert LEGO designer creating simple, stable builds (100–300 pieces) from a photo using ONLY the exact parts provided.
+You are an expert LEGO set designer. Given a photo of an object, design a simple, stable LEGO build (50–150 pieces max) that resembles it, using ONLY parts from the provided list.
 
-=== IMAGE STYLE RULES (follow these exactly) ===
-Global style keyword: "LEGO_INSTRUCTION_STYLE"
-Full style (use only the keyword in your output):
-"Official LEGO building instructions style, clean light-blue background, white rectangular step panel with subtle shadow, isometric 3/4 view from slightly above, highly detailed realistic LEGO bricks with visible studs and subtle plastic shine, black arrows clearly showing exact placement/rotation, new parts highlighted with thin white glow, part callout boxes with quantity (e.g. '2x'), no text printed on bricks, professional printed manual look, high contrast, clean white space"
-
-Rules for instructionsImagePrompt:
-- Describe a "knolling" style layout or an exploded view of the parts and partial assembly.
-- Keywords: "LEGO knolling photography, organized parts layout, white background, high contrast, top-down view"
-- End with: LEGO_INSTRUCTION_STYLE
-
-Example:
-"A knolling layout of LEGO parts for a small car, organized by color and size, with a partially built chassis in the center. White background. LEGO_INSTRUCTION_STYLE"
-
-For coverImagePrompt: Describe the finished model + end with LEGO_INSTRUCTION_STYLE
-
-=== TASK ===
-Analyze this photo of an object. Design a simple, stable LEGO build (100–300 pieces max) that resembles it, using ONLY real LEGO parts from this exact list:
-
+=== AVAILABLE PARTS ===
 ${partsList}
 
-Prioritize stability: wide base, secure connections, no floating parts. Use only parts from the list above. Do not invent part numbers or names.
+=== RULES ===
+- Use ONLY part_num values from the list above. Do not invent parts.
+- Each piece in pieceList must include the part_num, the exact name from the list, a LEGO color name, its hex code, and a quantity.
+- Prioritize stability: wide base, interlocking bricks, no floating parts.
+- Design 5–8 building steps. Each step should add a clear group of parts.
 
-Output ONLY valid JSON matching this exact schema. No extra text, no markdown, no explanations.
+=== PER-STEP IMAGE PROMPTS (critical - read carefully) ===
+For each instruction step, write an "imagePrompt" that describes ONLY what is VISIBLE at that step (the cumulative build so far). These prompts will be sent to an AI image generator (FLUX), so follow these rules exactly:
 
-{
-  "objectDescription": "string",
-  "colors": ["string"],
-  "shapes": ["string"],
-  "pieceList": [
-    { "partId": "string", "color": "string", "quantity": number }
-  ],
-  "instructionStylePrompt": "string",           // ← put the FULL style paragraph here (the one above)
-  "instructions": [
-    {
-      "stepNumber": number,
-      "description": "string"
-    }
-  ],
-  "coverImagePrompt": "string",                 // ← finished model + LEGO_INSTRUCTION_STYLE
-  "instructionsImagePrompt": "string"           // ← knolling/exploded view + LEGO_INSTRUCTION_STYLE
-}
+1. Describe the physical LEGO bricks by color, size, and position (e.g. "a green 2x4 plate on top of a blue 2x6 plate").
+2. Every prompt MUST end with: "Isometric 3/4 view from slightly above. Clean light blue background. Realistic LEGO bricks with visible studs and subtle plastic shine. Studio lighting. No text, no arrows, no labels, no UI."
+3. Do NOT mention step numbers, callout boxes, arrows, or any diagram elements in the prompt.
+4. Each step's prompt should describe the FULL assembly up to that point, with newly added parts mentioned last.
+5. Keep prompts concise (2-3 sentences max before the style suffix).
 
-Make 5–8 steps.
+Example imagePrompt for a step:
+"A partially-built LEGO frog: a green 4x6 baseplate with two yellow 2x2 slope bricks placed on the front edge. Isometric 3/4 view from slightly above. Clean light blue background. Realistic LEGO bricks with visible studs and subtle plastic shine. Studio lighting. No text, no arrows, no labels, no UI."
+
+=== COVER IMAGE PROMPT ===
+Write a "coverImagePrompt" describing the FINISHED model only. Use this style:
+"A completed LEGO [object] model made of [colors] bricks. [Brief description of shape]. Product photography, isometric 3/4 view from slightly above. Clean white background. Realistic LEGO bricks with visible studs and plastic shine. Studio lighting. No text, no labels."
+
+=== partsUsed PER STEP ===
+For each step, list ONLY the parts being ADDED in that step (not cumulative). Include partId, name, color, colorHex, and quantity.
+
+Output valid JSON matching the schema. No extra text.
 `;
 
   const result = await geminiModel.generateContent([
