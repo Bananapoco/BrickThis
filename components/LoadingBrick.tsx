@@ -18,10 +18,21 @@ const MEMES = [
 
 const STUDS = Array.from({ length: 12 });
 
-const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: number) => void }> = ({ message = "Processing...", onProgress }) => {
+const LoadingBrick: React.FC<{ 
+  message?: string; 
+  onProgress?: (progress: number) => void;
+  resetProgress?: boolean;
+}> = ({ message = "Processing...", onProgress, resetProgress = false }) => {
   const [memeIndex, setMemeIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [shownMemes, setShownMemes] = useState<Set<number>>(new Set());
+
+  // Handle resetProgress prop
+  useEffect(() => {
+    if (resetProgress) {
+      setProgress(0);
+    }
+  }, [resetProgress]);
 
   useEffect(() => {
     const initialIndex = Math.floor(Math.random() * MEMES.length);
@@ -45,7 +56,8 @@ const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: number)
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 95) return prev;
-        const increment = Math.max(0.1, (100 - prev) / 50);
+        // Accurate but optimized: slower as it gets closer to 100%
+        const increment = Math.max(0.1, (100 - prev) / 60);
         return Math.min(95, prev + increment);
       });
     }, 100);

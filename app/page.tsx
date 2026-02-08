@@ -29,6 +29,7 @@ export default function Home() {
   // Faux Error State
   const [showFauxError, setShowFauxError] = useState(false);
   const [isFauxErrorFlow, setIsFauxErrorFlow] = useState(false);
+  const [hasRetriedFauxError, setHasRetriedFauxError] = useState(false);
   const currentBlob = useRef<Blob | null>(null);
 
   const handleImageSelected = useCallback((imageUrl: string) => {
@@ -51,6 +52,7 @@ export default function Home() {
   const handleImageCropped = useCallback(async (blob: Blob) => {
     if (appState === 'processing') return;
     currentBlob.current = blob;
+    setHasRetriedFauxError(false);
     
     const hasSeenFauxError = localStorage.getItem('hasSeenFauxError');
     
@@ -72,6 +74,7 @@ export default function Home() {
     localStorage.setItem('hasSeenFauxError', 'true');
     setShowFauxError(false);
     setIsFauxErrorFlow(false);
+    setHasRetriedFauxError(true);
     
     if (currentBlob.current) {
       startRealAnalysis(currentBlob.current);
@@ -86,6 +89,7 @@ export default function Home() {
     setAppState('home');
     setShowFauxError(false);
     setIsFauxErrorFlow(false);
+    setHasRetriedFauxError(false);
   }, []);
 
   return (
@@ -240,6 +244,7 @@ export default function Home() {
                 <LoadingBrick 
                   message="Building your instructions..." 
                   onProgress={handleLoadingProgress}
+                  resetProgress={hasRetriedFauxError}
                 />
               </Suspense>
             </motion.div>
@@ -263,8 +268,17 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-gray-400 py-6 text-center text-sm">
+      <footer className="bg-gray-800 text-gray-400 py-6 text-center text-sm flex flex-col items-center gap-2">
         <p>© 2026 February 7th BrickThis Prototype. Not affiliated with the LEGO Group.</p>
+        <button 
+          onClick={() => {
+            localStorage.removeItem('hasSeenFauxError');
+            alert('Faux error reset! The next generation will trigger the error screen.');
+          }}
+          className="text-xs opacity-20 hover:opacity-100 transition-opacity"
+        >
+          [Reset First-Time Experience]
+        </button>
       </footer>
     </div>
   );

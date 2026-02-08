@@ -14,6 +14,10 @@ const responseSchema: Schema = {
       type: SchemaType.STRING,
       description: "A brief description of the object in the photo",
     },
+    modelOverview: {
+      type: SchemaType.STRING,
+      description: "Subject name, approximate dimensions in studs (L×W×H), build direction, scale note",
+    },
     colors: {
       type: SchemaType.ARRAY,
       items: { type: SchemaType.STRING },
@@ -44,11 +48,11 @@ const responseSchema: Schema = {
         type: SchemaType.OBJECT,
         properties: {
           stepNumber: { type: SchemaType.NUMBER },
+          title: { type: SchemaType.STRING },
           description: { type: SchemaType.STRING },
           imagePrompt: {
             type: SchemaType.STRING,
-            description:
-              "A prompt for FLUX image generation describing the cumulative build state at this step. Isometric view, light blue background, realistic LEGO bricks. No text, no arrows, no UI elements.",
+            description: "A prompt for FLUX image generation describing the cumulative build state at this step.",
           },
           partsUsed: {
             type: SchemaType.ARRAY,
@@ -66,17 +70,17 @@ const responseSchema: Schema = {
             },
           },
         },
-        required: ["stepNumber", "description", "imagePrompt", "partsUsed"],
+        required: ["stepNumber", "title", "description", "imagePrompt", "partsUsed"],
       },
     },
     coverImagePrompt: {
       type: SchemaType.STRING,
-      description:
-        "A prompt for FLUX image generation showing the completed LEGO model. Product photography, isometric 3/4 view, white background, realistic bricks with visible studs. No text.",
+      description: "A prompt for FLUX image generation showing the completed LEGO model.",
     },
   },
   required: [
     "objectDescription",
+    "modelOverview",
     "colors",
     "shapes",
     "pieceList",
@@ -95,39 +99,51 @@ export const geminiModel = genAI.getGenerativeModel({
 });
 
 export async function analyzeImageWithGemini(imageBase64: string, partsList: string) {
-  const prompt = `
-You are an expert LEGO set designer. Given a photo of an object, design a simple, stable LEGO build (50–150 pieces max) that resembles it, using ONLY parts from the provided list.
+  const prompt = `You are a world-class LEGO set designer and instruction manual author. Given the photo, design a buildable LEGO model that faithfully represents the subject using ONLY parts from the catalog below.
 
-=== AVAILABLE PARTS ===
+=== AVAILABLE PARTS CATALOG ===
 ${partsList}
 
-=== RULES ===
-- Use ONLY part_num values from the list above. Do not invent parts.
-- Each piece in pieceList must include the part_num, the exact name from the list, a LEGO color name, its hex code, and a quantity.
-- Prioritize stability: wide base, interlocking bricks, no floating parts.
-- Design 5–8 building steps. Each step should add a clear group of parts.
+=== DESIGN PARAMETERS ===
+- Scale: Determine based on image (Example: A frog photo would be about 4 inches)
+- Total piece count: 50–150 pieces
+- Build direction: bottom to top
+- Exactly 6 building steps
+- Prioritize structural stability: wide base, interlocking layers, staggered bonds, no floating parts
+- Use ONLY part_id values from the catalog above. NEVER invent parts.
+- Choose LEGO colors that best match the subject in the photo
 
-=== PER-STEP IMAGE PROMPTS (critical - read carefully) ===
-For each instruction step, write an "imagePrompt" that describes ONLY what is VISIBLE at that step (the cumulative build so far). These prompts will be sent to an AI image generator (FLUX), so follow these rules exactly:
+=== INSTRUCTION DETAIL LEVEL (CRITICAL) ===
+Your instructions must be extraordinarily detailed — the quality that made real LEGO manuals legendary. For EACH step:
+- Reference specific part IDs in parentheses, e.g. "Place two 2×6 Plates (3795) parallel..."
+- Describe exact stud positions and orientations
+- Explain structural reasoning (why parts go where they do)
+- Use sub-assembly instructions when needed (e.g. "Sub-assembly A — build 2×, mirrored")
+- Minimum 4–10 sentences per step
+- Describe layers, offsets, and interlocking patterns
 
-1. Describe the physical LEGO bricks by color, size, and position (e.g. "a green 2x4 plate on top of a blue 2x6 plate").
-2. Every prompt MUST end with: "Isometric 3/4 view from slightly above. Clean light blue background. Realistic LEGO bricks with visible studs and subtle plastic shine. Studio lighting. No text, no arrows, no labels, no UI."
-3. Do NOT mention step numbers, callout boxes, arrows, or any diagram elements in the prompt.
-4. Each step's prompt should describe the FULL assembly up to that point, with newly added parts mentioned last.
-5. Keep prompts concise (2-3 sentences max before the style suffix).
+=== IMAGE PROMPT RULES (for FLUX AI image generation) ===
 
-Example imagePrompt for a step:
-"A partially-built LEGO frog: a green 4x6 baseplate with two yellow 2x2 slope bricks placed on the front edge. Isometric 3/4 view from slightly above. Clean light blue background. Realistic LEGO bricks with visible studs and subtle plastic shine. Studio lighting. No text, no arrows, no labels, no UI."
+STEP IMAGE PROMPTS — These must look like pages from an official LEGO instruction manual:
+- Technical illustration style, NOT a photograph
+- Isometric 3/4 view from slightly above, clean light blue background (#D4E8F7)
+- The CUMULATIVE partially-built LEGO model (everything assembled so far) shown in the lower center
+- Bricks should be rendered as clean, solid-colored LEGO pieces with visible studs and clean black outlines
+- The new pieces being added in THIS step should appear slightly separated/floating above where they attach, with a thin black arrow pointing down to show placement
+- A small rectangular callout box in the upper portion shows the individual new parts for this step, each labeled with a small number (1, 2, etc.)
+- The step number appears as a large bold number in the upper-left corner
+- Clean, minimal style — no text descriptions, no realistic lighting, no shadows beyond simple drop shadows
+- Think: official LEGO instruction booklet illustration, vector-like rendering, flat shading
 
-=== COVER IMAGE PROMPT ===
-Write a "coverImagePrompt" describing the FINISHED model only. Use this style:
-"A completed LEGO [object] model made of [colors] bricks. [Brief description of shape]. Product photography, isometric 3/4 view from slightly above. Clean white background. Realistic LEGO bricks with visible studs and plastic shine. Studio lighting. No text, no labels."
+Step imagePrompt format:
+"LEGO instruction manual technical diagram, step [N]. [2-3 sentences describing the cumulative build state and which new colored pieces are being added and where]. The new pieces float slightly above their attachment points with small black arrows indicating placement. A rectangular callout box in the upper area shows the new parts numbered sequentially. Large bold step number [N] in the upper left. Isometric 3/4 view from slightly above. Clean light blue background. Clean flat-shaded LEGO bricks with visible studs and thin black outlines. Official LEGO instruction booklet style, technical illustration, vector-like rendering. No realistic lighting, no text descriptions."
 
-=== partsUsed PER STEP ===
-For each step, list ONLY the parts being ADDED in that step (not cumulative). Include partId, name, color, colorHex, and quantity.
+COVER IMAGE PROMPT — This should be a polished product shot of the finished model:
 
-Output valid JSON matching the schema. No extra text.
-`;
+Cover "coverImagePrompt" format:
+"[3-5 sentences describing the COMPLETED LEGO model in full detail — colors, textures, distinctive features, overall shape]. Product photography, isometric 3/4 view from slightly above. Clean white background. Realistic LEGO bricks with visible studs and plastic shine. Studio lighting. No text, no labels."
+
+Output valid JSON matching the schema. No extra text.`;
 
   const result = await geminiModel.generateContent([
     prompt,

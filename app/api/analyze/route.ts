@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { analyzeImageWithGemini } from "../../../services/gemini";
 import { analyzeImageWithClaude } from "../../../services/anthropic";
 import { generateImageWithReplicate } from "../../../services/replicate";
 import legoParts from "../../../data/lego-parts.json";
@@ -34,20 +35,28 @@ function enrichColors(parsedResult: any) {
 async function fetchRebrickableImages(parsedResult: any) {
   if (!parsedResult.pieceList || !Array.isArray(parsedResult.pieceList)) return;
   console.log("🔍 Fetching Rebrickable images...");
-  await Promise.all(
-    parsedResult.pieceList.map(async (piece: any) => {
-      try {
-        const imageUrl = await getPartImageUrl(piece.partId, piece.color);
-        if (imageUrl) piece.imageUrl = imageUrl;
-      } catch {
-        // Silently skip — we already have a frontend fallback icon
-      }
-    })
-  );
+  
+  const BATCH_SIZE = 3;
+  const pieces = parsedResult.pieceList;
+  
+  for (let i = 0; i < pieces.length; i += BATCH_SIZE) {
+    const batch = pieces.slice(i, i + BATCH_SIZE);
+    await Promise.all(
+      batch.map(async (piece: any) => {
+        try {
+          const imageUrl = await getPartImageUrl(piece.partId, piece.color);
+          if (imageUrl) piece.imageUrl = imageUrl;
+        } catch {
+          // Silently skip — we already have a frontend fallback icon
+        }
+      })
+    );
+  }
 }
 
 async function generateAllImages(parsedResult: any) {
-  const BATCH_SIZE = 4;
+  // Reduced to 2 to avoid Replicate 429 errors (rate limit: 6 req/min)
+  const BATCH_SIZE = 2;
 
   interface ImageTask {
     name: string;
@@ -58,6 +67,7 @@ async function generateAllImages(parsedResult: any) {
 
   const tasks: ImageTask[] = [];
 
+  // ONLY generate the cover image as requested
   if (parsedResult.coverImagePrompt) {
     tasks.push({
       name: "Cover",
@@ -67,6 +77,7 @@ async function generateAllImages(parsedResult: any) {
     });
   }
 
+  // Step images
   if (parsedResult.instructions && Array.isArray(parsedResult.instructions)) {
     parsedResult.instructions.forEach((step: any, i: number) => {
       if (step.imagePrompt) {
@@ -79,6 +90,8 @@ async function generateAllImages(parsedResult: any) {
       }
     });
   }
+
+  if (tasks.length === 0) return;
 
   console.log(`🎨 ${tasks.length} images queued (batch: ${BATCH_SIZE})`);
 
@@ -102,6 +115,9 @@ async function generateAllImages(parsedResult: any) {
 
 // ---------- route handler ----------
 
+// Toggle between 'gemini' and 'opus'
+const AI_PROVIDER: 'gemini' | 'opus' = (process.env.AI_PROVIDER as 'gemini' | 'opus') || 'gemini';
+
 export async function POST(req: NextRequest) {
   try {
     const { image } = await req.json();
@@ -110,15 +126,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    // 1. Claude Opus analysis
-    console.log("\n=== Claude Opus Analysis ===");
     let rawJson: string;
-    try {
-      rawJson = await analyzeImageWithClaude(image, partsListString);
-      console.log("✅ Claude done");
-    } catch (error: any) {
-      console.error("❌ Claude failed:", error.message);
-      throw error;
+
+    if (AI_PROVIDER === 'opus') {
+      console.log("\n=== Claude Opus Analysis ===");
+      try {
+        rawJson = await analyzeImageWithClaude(image, partsListString);
+        console.log("✅ Claude done");
+      } catch (error: any) {
+        console.error("❌ Claude failed:", error.message);
+        throw error;
+      }
+    } else {
+      console.log("\n=== Gemini Analysis ===");
+      try {
+        rawJson = await analyzeImageWithGemini(image, partsListString);
+        console.log("✅ Gemini done");
+      } catch (error: any) {
+        console.error("❌ Gemini failed:", error.message);
+        throw error;
+      }
     }
 
     // 2. Parse JSON

@@ -8,8 +8,8 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_KEY || "",
 });
 
-const MAX_RETRIES = 2;
-const RETRY_BASE_DELAY_MS = 6000; // 6s base (Replicate says "resets in ~5s")
+const MAX_RETRIES = 3;
+const RETRY_BASE_DELAY_MS = 5000; // 10s base (Replicate rate limit resets in ~10s)
 
 /**
  * Sleep utility for retry backoff
@@ -26,13 +26,21 @@ function extractUrl(output: unknown): string {
     const first = output[0];
     if (typeof first === "string") return first;
     if (first && typeof first === "object") {
-      if ("url" in first && typeof first.url === "function") return first.url();
-      if ("url" in first) return String(first.url);
+      // Replicate's FileOutput might have a url() method or a url property
+      if ("url" in first && typeof (first as any).url === "function") return String((first as any).url());
+      if ("url" in first) return String((first as any).url);
       return String(first);
     }
     return String(first);
   }
   if (typeof output === "string") return output;
+  
+  // Handle case where output itself is a FileOutput object
+  if (output && typeof output === "object") {
+    if ("url" in output && typeof (output as any).url === "function") return String((output as any).url());
+    if ("url" in output) return String((output as any).url);
+  }
+
   throw new Error(`Unexpected Replicate output format: ${typeof output}`);
 }
 
@@ -65,10 +73,17 @@ export async function generateImageWithReplicate(
 
       const imageUrl = extractUrl(output);
 
-      // Validate URL
-      if (!imageUrl || imageUrl === "[object Object]" || !imageUrl.startsWith("http")) {
-        throw new Error(`Invalid image URL: ${imageUrl}`);
+    // Validate URL
+    if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.startsWith("http")) {
+      console.error("Replicate returned invalid URL:", imageUrl);
+      console.error("Raw output type:", typeof output);
+      try {
+        console.error("Raw output:", JSON.stringify(output, null, 2).substring(0, 1000));
+      } catch (e) {
+        console.error("Could not stringify output:", e);
       }
+      throw new Error(`Invalid image URL from Replicate: ${imageUrl}`);
+    }
 
       console.log(`✅ Replicate: ${aspectRatio} image generated`);
       return imageUrl;
