@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import Cropper, { ReactCropperElement } from 'react-cropper';
 import { RotateCw, Check, ArrowLeft } from 'lucide-react';
 import { LegoButton } from './LegoButton';
+import 'cropperjs/dist/cropper.css';
 
 interface ImageCropperProps {
   imageSrc: string;
@@ -9,23 +10,47 @@ interface ImageCropperProps {
   onComplete: (croppedImageBlob: Blob) => void;
 }
 
-export const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCancel, onComplete }) => {
+const MAX_IMAGE_DIMENSION = 1200;
+
+const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCancel, onComplete }) => {
   const cropperRef = useRef<ReactCropperElement>(null);
 
   const handleRotate = () => {
-    const cropper = cropperRef.current?.cropper;
-    cropper?.rotate(90);
+    cropperRef.current?.cropper?.rotate(90);
   };
 
   const handleCrop = () => {
     const cropper = cropperRef.current?.cropper;
-    if (cropper) {
-      cropper.getCroppedCanvas().toBlob((blob) => {
-        if (blob) {
-          onComplete(blob);
-        }
-      });
+    if (!cropper) return;
+
+    // Get cropped canvas, then downscale if needed to reduce upload size
+    const sourceCanvas = cropper.getCroppedCanvas();
+    const { width, height } = sourceCanvas;
+
+    let targetW = width;
+    let targetH = height;
+
+    if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
+      const scale = MAX_IMAGE_DIMENSION / Math.max(width, height);
+      targetW = Math.round(width * scale);
+      targetH = Math.round(height * scale);
     }
+
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = targetW;
+    outputCanvas.height = targetH;
+    const ctx = outputCanvas.getContext('2d');
+    if (ctx) {
+      ctx.drawImage(sourceCanvas, 0, 0, targetW, targetH);
+    }
+
+    outputCanvas.toBlob(
+      (blob) => {
+        if (blob) onComplete(blob);
+      },
+      'image/jpeg',
+      0.85 // Compress to 85% quality JPEG
+    );
   };
 
   return (
@@ -61,3 +86,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({ imageSrc, onCancel, 
     </div>
   );
 };
+
+export default ImageCropper;
+// Keep named export for backwards compatibility
+export { ImageCropper };

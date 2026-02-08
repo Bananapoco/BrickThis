@@ -8,13 +8,12 @@ interface FauxErrorScreenProps {
   onRetry: () => void;
 }
 
-export const FauxErrorScreen: React.FC<FauxErrorScreenProps> = ({ onRetry }) => {
+const FauxErrorScreen: React.FC<FauxErrorScreenProps> = ({ onRetry }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Play music
     const audio = new Audio('/EverythingIsAwesome.wav');
-    audio.loop = false; // Play once as requested, or loop? User said "playing ONCE"
+    audio.loop = false;
     audio.volume = 0.5;
     audioRef.current = audio;
     
@@ -25,22 +24,16 @@ export const FauxErrorScreen: React.FC<FauxErrorScreenProps> = ({ onRetry }) => 
       });
     }
 
-    // Trigger Confetti
     const duration = 15 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 21, spread: 360, ticks: 78, zIndex: 1000 };
-
     const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
-    const interval: any = setInterval(function() {
+    const interval: ReturnType<typeof setInterval> = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
+      if (timeLeft <= 0) return clearInterval(interval);
 
       const particleCount = 50 * (timeLeft / duration);
-      // since particles fall down, start a bit higher than random
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
       confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
     }, 325);
@@ -55,16 +48,13 @@ export const FauxErrorScreen: React.FC<FauxErrorScreenProps> = ({ onRetry }) => 
   }, []);
 
   const handleRetry = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-    }
+    if (audioRef.current) audioRef.current.pause();
     onRetry();
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden font-sans bg-black/80 backdrop-blur-sm">
-      {/* Rainbow Dance Background - Pastel & Slower */}
-      <div className="absolute inset-0 z-0 animate-rainbow-flash-pastel opacity-40"></div>
+      <div className="absolute inset-0 z-0 animate-rainbow-flash-pastel opacity-40" />
       
       <motion.div 
         className="relative z-10 bg-white p-10 rounded-3xl shadow-2xl max-w-2xl w-full mx-4 text-center"
@@ -109,3 +99,6 @@ export const FauxErrorScreen: React.FC<FauxErrorScreenProps> = ({ onRetry }) => 
     </div>
   );
 };
+
+export default FauxErrorScreen;
+export { FauxErrorScreen };

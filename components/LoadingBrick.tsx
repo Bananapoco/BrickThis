@@ -16,18 +16,32 @@ const MEMES = [
   'lego-lego-meme.png'
 ];
 
-export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: number) => void }> = ({ message = "Processing...", onProgress }) => {
+const STUDS = Array.from({ length: 12 });
+
+const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: number) => void }> = ({ message = "Processing...", onProgress }) => {
   const [memeIndex, setMemeIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [shownMemes, setShownMemes] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    // Cycle memes every 3 seconds
-    const memeInterval = setInterval(() => {
-      setMemeIndex((prev) => (prev + 1) % MEMES.length);
-    }, 5000);
+    const initialIndex = Math.floor(Math.random() * MEMES.length);
+    setMemeIndex(initialIndex);
+    setShownMemes(new Set([initialIndex]));
 
-    // Simulate progress bar (since we don't have real progress from the API)
-    // It will slow down as it reaches 90%
+    const memeInterval = setInterval(() => {
+      setShownMemes((prevShown) => {
+        if (prevShown.size >= MEMES.length) {
+          const randomIndex = Math.floor(Math.random() * MEMES.length);
+          setMemeIndex(randomIndex);
+          return new Set([randomIndex]);
+        }
+        const unshownIndices = MEMES.map((_, idx) => idx).filter(idx => !prevShown.has(idx));
+        const randomIndex = unshownIndices[Math.floor(Math.random() * unshownIndices.length)];
+        setMemeIndex(randomIndex);
+        return new Set([...prevShown, randomIndex]);
+      });
+    }, 6000);
+
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 95) return prev;
@@ -42,12 +56,8 @@ export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: 
     };
   }, []);
 
-  // Use a separate effect to notify parent of progress updates
-  // This avoids "Cannot update a component while rendering a different component" error
   useEffect(() => {
-    if (onProgress) {
-      onProgress(progress);
-    }
+    if (onProgress) onProgress(progress);
   }, [progress, onProgress]);
 
   return (
@@ -59,6 +69,7 @@ export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: 
             key={MEMES[memeIndex]}
             src={`/memes/${MEMES[memeIndex]}`}
             alt="LEGO Meme"
+            loading="lazy"
             className="w-full h-full object-contain bg-gray-100"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -69,19 +80,15 @@ export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: 
       </div>
 
       <div className="w-full space-y-4">
-        {/* Progress Bar Container */}
         <div className="h-6 w-full bg-gray-200 rounded-full overflow-hidden border-2 border-gray-300 shadow-inner relative">
-          {/* Progress Fill */}
           <motion.div 
             className="h-full bg-[#E3000B]"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ type: "spring", bounce: 0, duration: 0.5 }}
           />
-          
-          {/* LEGO Studs Pattern on Progress Bar */}
           <div className="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-around px-2">
-            {[...Array(12)].map((_, i) => (
+            {STUDS.map((_, i) => (
               <div key={i} className="w-3 h-3 rounded-full bg-white" />
             ))}
           </div>
@@ -101,24 +108,20 @@ export const LoadingBrick: React.FC<{ message?: string; onProgress?: (progress: 
         </div>
       </div>
 
-      {/* Animated 2x2 Brick (Smaller version) */}
+      {/* Animated 2x2 Brick */}
       <div className="grid grid-cols-2 gap-1.5 opacity-40">
         {[0, 1, 2, 3].map((i) => (
           <motion.div
             key={i}
             className="w-4 h-4 rounded-full bg-[#E3000B]"
-            animate={{ 
-              scale: [1, 1.3, 1],
-              opacity: [0.4, 1, 0.4]
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              delay: i * 0.15,
-            }}
+            animate={{ scale: [1, 1.3, 1], opacity: [0.4, 1, 0.4] }}
+            transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
           />
         ))}
       </div>
     </div>
   );
 };
+
+export default LoadingBrick;
+export { LoadingBrick };

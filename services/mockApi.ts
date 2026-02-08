@@ -29,11 +29,13 @@ export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => 
 
     const data = await response.json();
 
-    // Map Gemini response to our frontend AnalysisResult type
+    // Map Claude Opus response to our frontend AnalysisResult type
+    const totalPieces = data.pieceList.reduce((acc: number, p: any) => acc + p.quantity, 0);
     return {
       status: 'success',
-      estimatedTime: `${Math.ceil(data.pieceList.reduce((acc: number, p: any) => acc + p.quantity, 0) * 0.5)} mins`,
-      difficulty: data.pieceList.length > 50 ? 'Hard' : data.pieceList.length > 20 ? 'Medium' : 'Easy',
+      estimatedTime: `${Math.ceil(totalPieces * 0.5)} mins`,
+      difficulty: totalPieces > 100 ? 'Hard' : totalPieces > 50 ? 'Medium' : 'Easy',
+      modelOverview: data.modelOverview || undefined,
       pieces: data.pieceList.map((p: any, index: number) => ({
         id: String(index + 1),
         name: p.name || `Part ${p.partId}`,
@@ -45,6 +47,7 @@ export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => 
       })),
       instructions: data.instructions.map((s: any) => ({
         stepNumber: s.stepNumber,
+        title: s.title || undefined,
         description: s.description,
         imageUrl: s.imageUrl || undefined,
         partsUsed: (s.partsUsed || []).map((p: any) => ({

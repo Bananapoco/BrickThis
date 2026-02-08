@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { Fredoka } from "next/font/google";
 import "./globals.css";
-import "cropperjs/dist/cropper.css";
-import "swiper/css";
 
 const fredoka = Fredoka({
   subsets: ["latin"],
   variable: "--font-fredoka",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
