@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Layers, BookOpen, RefreshCw, Package } from 'lucide-react';
-import { jsPDF } from 'jspdf';
+import { Layers, BookOpen, RefreshCw, Package } from 'lucide-react';
+// import { jsPDF } from 'jspdf';
 import { AnalysisResult, InstructionStep } from '../types';
 import { LegoButton } from './LegoButton';
 
@@ -71,65 +71,66 @@ const StepCard: React.FC<{ step: InstructionStep; index: number }> = ({ step, in
 export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) => {
   const [activeTab, setActiveTab] = useState<'parts' | 'instructions'>('parts');
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
+  // PDF Generation - TEMPORARILY DISABLED
+  // const generatePDF = () => {
+  //   const doc = new jsPDF();
 
-    // Header
-    doc.setFontSize(22);
-    doc.setTextColor(227, 0, 11);
-    doc.text('BrickThis Instructions', 20, 20);
+  //   // Header
+  //   doc.setFontSize(22);
+  //   doc.setTextColor(227, 0, 11);
+  //   doc.text('BrickThis Instructions', 20, 20);
 
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`Difficulty: ${results.difficulty} | Time: ${results.estimatedTime}`, 20, 30);
+  //   doc.setFontSize(12);
+  //   doc.setTextColor(0);
+  //   doc.text(`Difficulty: ${results.difficulty} | Time: ${results.estimatedTime}`, 20, 30);
 
-    // Parts List
-    doc.setFontSize(16);
-    doc.text('Parts Needed:', 20, 45);
+  //   // Parts List
+  //   doc.setFontSize(16);
+  //   doc.text('Parts Needed:', 20, 45);
 
-    let yPos = 55;
-    results.pieces.forEach((piece) => {
-      if (yPos > 270) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.setFontSize(12);
-      doc.text(`- ${piece.quantity}x ${piece.color} ${piece.name} (${piece.partNumber})`, 20, yPos);
-      yPos += 8;
-    });
+  //   let yPos = 55;
+  //   results.pieces.forEach((piece) => {
+  //     if (yPos > 270) {
+  //       doc.addPage();
+  //       yPos = 20;
+  //     }
+  //     doc.setFontSize(12);
+  //     doc.text(`- ${piece.quantity}x ${piece.color} ${piece.name} (${piece.partNumber})`, 20, yPos);
+  //     yPos += 8;
+  //   });
 
-    // Instructions
-    doc.addPage();
-    doc.setFontSize(16);
-    doc.text('Building Steps:', 20, 20);
+  //   // Instructions
+  //   doc.addPage();
+  //   doc.setFontSize(16);
+  //   doc.text('Building Steps:', 20, 20);
 
-    yPos = 30;
-    results.instructions.forEach((step) => {
-      if (yPos > 260) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.setFontSize(14);
-      doc.setTextColor(227, 0, 11);
-      doc.text(`Step ${step.stepNumber}`, 20, yPos);
-      doc.setFontSize(11);
-      doc.setTextColor(0);
+  //   yPos = 30;
+  //   results.instructions.forEach((step) => {
+  //     if (yPos > 260) {
+  //       doc.addPage();
+  //       yPos = 20;
+  //     }
+  //     doc.setFontSize(14);
+  //     doc.setTextColor(227, 0, 11);
+  //     doc.text(`Step ${step.stepNumber}`, 20, yPos);
+  //     doc.setFontSize(11);
+  //     doc.setTextColor(0);
 
-      // Parts used in this step
-      if (step.partsUsed && step.partsUsed.length > 0) {
-        const partsLine = step.partsUsed.map((p) => `${p.quantity}x ${p.color} ${p.name}`).join(', ');
-        const splitParts = doc.splitTextToSize(`Parts: ${partsLine}`, 170);
-        doc.text(splitParts, 20, yPos + 6);
-        yPos += 6 + splitParts.length * 5;
-      }
+  //     // Parts used in this step
+  //     if (step.partsUsed && step.partsUsed.length > 0) {
+  //       const partsLine = step.partsUsed.map((p) => `${p.quantity}x ${p.color} ${p.name}`).join(', ');
+  //       const splitParts = doc.splitTextToSize(`Parts: ${partsLine}`, 170);
+  //       doc.text(splitParts, 20, yPos + 6);
+  //       yPos += 6 + splitParts.length * 5;
+  //     }
 
-      const splitText = doc.splitTextToSize(step.description, 170);
-      doc.text(splitText, 20, yPos + 6);
-      yPos += 14 + splitText.length * 5;
-    });
+  //     const splitText = doc.splitTextToSize(step.description, 170);
+  //     doc.text(splitText, 20, yPos + 6);
+  //     yPos += 14 + splitText.length * 5;
+  //   });
 
-    doc.save('my-brick-build.pdf');
-  };
+  //   doc.save('my-brick-build.pdf');
+  // };
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 animate-fade-in">
@@ -176,9 +177,6 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
           </div>
         </div>
         <div className="flex gap-3">
-          <LegoButton onClick={generatePDF} variant="secondary" icon={<Download size={18} />}>
-            PDF
-          </LegoButton>
           <LegoButton onClick={onReset} variant="neutral" icon={<RefreshCw size={18} />}>
             New
           </LegoButton>
