@@ -143,51 +143,36 @@ export const ResultsView: React.FC<ResultsViewProps> = ({ results, onReset }) =>
             </table>
           </div>
         ) : (
-          <div className="p-4 md:p-8">
-             <Swiper
-                modules={[Navigation, Pagination]}
-                navigation
-                pagination={{ clickable: true }}
-                spaceBetween={30}
-                slidesPerView={1}
-                className="w-full h-full rounded-2xl"
-                style={{
-                    '--swiper-navigation-color': '#E3000B',
-                    '--swiper-pagination-color': '#E3000B',
-                } as React.CSSProperties}
-            >
+          <div className="p-4 md:p-8 flex flex-col items-center">
+            {/* Single Instruction Image */}
+            {(results.instructionsImageUrl || results.coverImageUrl) && (
+              <div className="w-full max-w-2xl mb-8">
+                <img 
+                  src={results.instructionsImageUrl || results.coverImageUrl} 
+                  alt="LEGO Build Instructions" 
+                  className="w-full h-auto object-contain rounded-2xl shadow-lg border-4 border-gray-100"
+                />
+              </div>
+            )}
+            
+            {/* Simple Step-by-Step Text */}
+            <div className="w-full max-w-2xl space-y-6">
+              <h3 className="text-2xl font-black text-gray-800 border-b-4 border-[#FFD500] inline-block pb-1 mb-4">
+                Building Steps
+              </h3>
+              <div className="space-y-4">
                 {results.instructions.map((step) => (
-                    <SwiperSlide key={step.stepNumber}>
-                        <div className="flex flex-col md:flex-row gap-8 items-center h-full pb-12">
-                            <div className="w-full md:w-1/2">
-                                <img 
-                                    src={step.imageUrl} 
-                                    alt={`Step ${step.stepNumber}`} 
-                                    className="w-full h-64 md:h-80 object-cover rounded-2xl shadow-md border-4 border-gray-100"
-                                />
-                            </div>
-                            <div className="w-full md:w-1/2 space-y-4 text-center md:text-left">
-                                <div className="inline-block bg-[#FFD500] px-4 py-2 rounded-xl font-bold text-xl mb-2 shadow-sm">
-                                    Step {step.stepNumber}
-                                </div>
-                                <h3 className="text-2xl font-bold text-gray-800 leading-tight">
-                                    {step.description}
-                                </h3>
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mt-4">
-                                    <p className="text-xs uppercase text-gray-400 font-bold mb-2">Pieces Needed</p>
-                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                        {step.piecesNeeded.map((p, idx) => (
-                                            <span key={idx} className="bg-white border border-gray-200 px-2 py-1 rounded text-sm text-gray-600 shadow-sm">
-                                                {p}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </SwiperSlide>
+                  <div key={step.stepNumber} className="flex gap-4 items-start bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                    <div className="bg-[#E3000B] text-white w-8 h-8 rounded-full flex items-center justify-center font-bold shrink-0 shadow-sm">
+                      {step.stepNumber}
+                    </div>
+                    <p className="text-gray-700 font-medium pt-1">
+                      {step.description}
+                    </p>
+                  </div>
                 ))}
-            </Swiper>
+              </div>
+            </div>
           </div>
         )}
       </div>

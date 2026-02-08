@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-import { AppState, AnalysisResult } from '../types';
-import { analyzeImage } from '../services/mockApi';
+import { AppState, AnalysisResult } from '@/types';
+import { analyzeImage } from '@/services/mockApi';
 
-import { PhotoInput } from '../components/PhotoInput';
-import { ImageCropper } from '../components/ImageCropper';
-import { LoadingBrick } from '../components/LoadingBrick';
-import { ResultsView } from '../components/ResultsView';
+import { PhotoInput } from '@/components/PhotoInput';
+import { ImageCropper } from '@/components/ImageCropper';
+import { LoadingBrick } from '@/components/LoadingBrick';
+import { ResultsView } from '@/components/ResultsView';
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>('home');

@@ -20,6 +20,8 @@ export interface AnalysisResult {
   instructions: InstructionStep[];
   estimatedTime: string;
   difficulty: 'Easy' | 'Medium' | 'Hard';
+  coverImageUrl?: string;
+  instructionsImageUrl?: string;
 }
 
 export type AppState = 'home' | 'camera' | 'editing' | 'processing' | 'results';

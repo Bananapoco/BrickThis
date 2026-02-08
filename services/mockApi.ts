@@ -44,9 +44,10 @@ export const analyzeImage = async (imageBlob: Blob): Promise<AnalysisResult> => 
       instructions: data.instructions.map((s: any) => ({
         stepNumber: s.stepNumber,
         description: s.description,
-        imageUrl: 'https://picsum.photos/400/300', // Placeholder until Imagen is integrated
         piecesNeeded: [], // Gemini doesn't explicitly list pieces per step in the current schema
       })),
+      coverImageUrl: data.coverImageUrl, // Pass through the cover image
+      instructionsImageUrl: data.instructionsImageUrl, // Pass through the instructions summary image
     };
   } catch (error) {
     console.error("Error in analyzeImage:", error);

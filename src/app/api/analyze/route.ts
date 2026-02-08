@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzeImageWithGemini } from "@/../services/gemini";
-import legoParts from "@/../data/lego-parts.json";
+import { analyzeImageWithGemini } from "@/services/gemini";
+import { generateImageWithReplicate } from "@/services/replicate";
+import legoParts from "@/data/lego-parts.json";
 import { jsonrepair } from "jsonrepair";
 
 export async function POST(req: NextRequest) {
@@ -57,6 +58,35 @@ export async function POST(req: NextRequest) {
       console.error("Parse error:", parseError.message);
       console.log("Raw response:", result);
       throw parseError;
+    }
+
+    // Generate cover image if prompt exists
+    if (parsedResult.coverImagePrompt) {
+      console.log("🎨 Generating cover image with prompt:", parsedResult.coverImagePrompt);
+      try {
+        const coverImageUrl = await generateImageWithReplicate(parsedResult.coverImagePrompt);
+        parsedResult.coverImageUrl = coverImageUrl;
+        console.log("✅ Cover image generated:", coverImageUrl);
+      } catch (imageError) {
+        console.error("Failed to generate cover image:", imageError);
+        // Don't fail the whole request if only image generation fails
+      }
+    } else {
+      console.log("⚠️ No coverImagePrompt found in Gemini response");
+    }
+
+    // Generate instructions summary image if prompt exists
+    if (parsedResult.instructionsImagePrompt) {
+      console.log("🎨 Generating instructions image with prompt:", parsedResult.instructionsImagePrompt);
+      try {
+        const instructionsImageUrl = await generateImageWithReplicate(parsedResult.instructionsImagePrompt);
+        parsedResult.instructionsImageUrl = instructionsImageUrl;
+        console.log("✅ Instructions image generated:", instructionsImageUrl);
+      } catch (imageError) {
+        console.error("Failed to generate instructions image:", imageError);
+      }
+    } else {
+      console.log("⚠️ No instructionsImagePrompt found in Gemini response");
     }
 
     return NextResponse.json(parsedResult);
