@@ -13,20 +13,14 @@ Turn any photo into a LEGO build. Snap or upload an image and get a parts list p
 - **Responsive UI** — Mobile-first design with LEGO-themed styling
 
 ## Tech Stack
-**Frontend**
-Next.js, tailwind, autoprefixer, canvas-confetti, cropperjs,
 
-**Backend**
-Node.js, flux-dev, gemini-3-pro, jsonrepair, node.js, rebrickable-api, replicate-api
+- Next.js, Tailwind, Autoprefixer, Canvas-confetti, Cropperjs
+- Node.js, Flux-dev, Gemini, Jsonrepair, Rebrickable API, Replicate API
 
----
+## Screenshots
 
-<img src="public/ProjectImages/home.png" height="400" alt="screenshot"/>
-
-<img src="public/ProjectImages/crop.png" height="400" alt="screenshot"/>
-
-<img src="public/ProjectImages/coverimage.png" height="400" alt="screenshot"/>
-
-<img src="public/ProjectImages/parts.png" height="400" alt="screenshot"/>
-
-<img src="public/ProjectImages/steps.png" height="400" alt="screenshot"/>
+![screenshot](public/ProjectImages/home.png)
+![screenshot](public/ProjectImages/crop.png)
+![screenshot](public/ProjectImages/coverimage.png)
+![screenshot](public/ProjectImages/parts.png)
+![screenshot](public/ProjectImages/steps.png)
