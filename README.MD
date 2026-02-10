@@ -1,6 +1,6 @@
 # BrickThis: AI-Powered photo to LEGO instructions!
 
-Turn any photo into a LEGO build. Snap or upload an image and get a parts list plus step-by-step instructions—all powered by AI.
+24-hour ML Hacakathon project. Turn any photo into a LEGO build! Snap or upload an image and get a parts list plus step-by-step instructions—all powered by AI.
 
 ## Key Features
 
