@@ -14,7 +14,7 @@
 
 ## Tech Stack
 
-- Next.js, Tailwind, Autoprefixer, Canvas-confetti, Cropperjs
+- Autoprefixer, Canvas-confetti, Cropperjs
 - Node.js, Flux-dev, Gemini, Jsonrepair, Rebrickable API, Replicate API
 
 ## Screenshots
