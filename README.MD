@@ -15,7 +15,7 @@
 ## Tech Stack
 
 - Autoprefixer, Canvas-confetti, Cropperjs
-- Node.js, Flux-dev, Gemini, Jsonrepair, Rebrickable API, Replicate API
+- Flux-dev, Gemini, Jsonrepair, Rebrickable API, Replicate API
 
 ## Screenshots
 
